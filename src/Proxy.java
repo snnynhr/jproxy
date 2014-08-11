@@ -1,11 +1,13 @@
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.*;
-import java.util.Arrays;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URL;
 
 public class Proxy {
 	public static void main(String args[])
@@ -23,6 +25,8 @@ public class Proxy {
 					Reader in = new InputStreamReader(new BufferedInputStream(connection.getInputStream()));
 					char[] rq = new char[8192];
 					int c = in.read(rq);
+					if(c == 8192)
+						throw new Error("Possible underread");
 					connection.close();
 					String request = String.valueOf(rq);
 					String[] header = request.split("\n");
@@ -42,6 +46,14 @@ public class Proxy {
 						out.write("\r\n");
 						out.flush();
 						out.close();
+						Reader p_in = new InputStreamReader(new BufferedInputStream(dest.getInputStream()));
+						BufferedReader p = new BufferedReader(p_in);
+						String line = p.readLine();
+						while(p.readLine()!="\r\n")
+						{
+							System.out.println(line);
+							line = p.readLine();
+						}
 						dest.close();
 					}
 					else
